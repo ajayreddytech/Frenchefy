@@ -90,6 +90,7 @@ All stored study data is browser-local and is not encrypted or synchronized. Cle
 ├── CONTRIBUTING.md
 ├── index.html
 ├── LICENSE
+├── netlify.toml            # Netlify build, publish, and SPA fallback settings
 ├── package.json
 ├── postcss.config.js
 ├── SECURITY.md
@@ -142,6 +143,14 @@ npm run preview
 ```
 
 The production output is written to `dist/`. Deploy that directory to a static web host with HTTPS and SPA fallback behavior configured as appropriate for your host.
+
+### Deploy to Netlify
+
+1. Push this repository to GitHub.
+2. In Netlify, choose **Add new site** → **Import an existing project**, then connect your GitHub repository.
+3. Leave the build settings as detected from `netlify.toml` (`npm run build`, publish directory `dist`) and deploy.
+
+The Netlify configuration also provides a single-page-app fallback so direct page loads resolve to the app. To set optional public links for a Netlify deployment, add the corresponding `VITE_` variables under **Site configuration** → **Environment variables**, then trigger a new deploy. Do not add secrets to `VITE_` variables.
 
 ## Testing & Quality Assurance
 
