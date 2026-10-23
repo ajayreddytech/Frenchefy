@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import packageMetadata from "../package.json";
 import {
   BookOpen,
@@ -21,8 +21,10 @@ import {
   X,
 } from "lucide-react";
 import SettingsView from "./SettingsView.jsx";
+import { supabase } from "./supabase.js";
 
 const STORAGE_KEY = "thecanadiandream-study-entries";
+const ACCOUNT_MIGRATION_KEY = "thecanadiandream-cloud-migration";
 const TABS = [
   { id: "log", label: "Log", icon: Plus },
   { id: "history", label: "History", icon: List },
@@ -214,6 +216,18 @@ function formatTimeToGoal(hours) {
 
 function App() {
   const [entries, setEntries] = useState([]);
+  const [entriesOwner, setEntriesOwner] = useState(undefined);
+  const [authUser, setAuthUser] = useState(null);
+  const [authReady, setAuthReady] = useState(!supabase);
+  const [cloudStatus, setCloudStatus] = useState(supabase ? "loading" : "unconfigured");
+  const [cloudMessage, setCloudMessage] = useState("");
+  const [cloudAttempt, setCloudAttempt] = useState(0);
+  const [syncAttempt, setSyncAttempt] = useState(0);
+  const entryOwnerRef = useRef(undefined);
+  const cloudReadyUserRef = useRef(null);
+  const lastSyncedEntriesRef = useRef([]);
+  const lastSyncedPreferencesRef = useRef(null);
+  const syncQueueRef = useRef(Promise.resolve());
   const [activeTab, setActiveTab] = useState("log");
   const [dailyGoalHours, setDailyGoalHours] = useState(() => {
     try {
@@ -257,6 +271,8 @@ function App() {
   useEffect(() => {
     try {
       setEntries(readEntries());
+      entryOwnerRef.current = null;
+      setEntriesOwner(null);
     } catch (error) {
       setStorageError(
         error instanceof Error ? error.message : "Could not read saved study data.",
@@ -267,14 +283,236 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!supabase) {
+      setAuthReady(true);
+      return undefined;
+    }
+
+    let active = true;
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setAuthUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        setCloudMessage(error.message);
+        setCloudStatus("error");
+      }
+      setAuthUser(data.session?.user ?? null);
+      setAuthReady(true);
+    }).catch((error) => {
+      if (!active) return;
+      setCloudMessage(error instanceof Error ? error.message : "Could not check your sign-in status.");
+      setCloudStatus("error");
+      setAuthReady(true);
+    });
+
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready || !authReady) return undefined;
+
+    if (!authUser) {
+      cloudReadyUserRef.current = null;
+      lastSyncedEntriesRef.current = [];
+      lastSyncedPreferencesRef.current = null;
+      setCloudStatus(supabase ? "signed-out" : "unconfigured");
+      try {
+        setEntries(readEntries());
+        entryOwnerRef.current = null;
+        setEntriesOwner(null);
+      } catch (error) {
+        setStorageError(
+          error instanceof Error ? error.message : "Could not read saved study data.",
+        );
+      }
+      return undefined;
+    }
+
+    let active = true;
+    const userId = authUser.id;
+    cloudReadyUserRef.current = null;
+    setCloudStatus("loading");
+    setCloudMessage("");
+
+    async function loadAccountEntries() {
+      const { data: remoteRows, error: readError } = await supabase
+        .from("study_entries")
+        .select("study_date, hours")
+        .eq("user_id", userId)
+        .order("study_date");
+      if (readError) throw readError;
+
+      const remoteEntries = remoteRows.map((row) => ({
+        date: row.study_date,
+        hours: Number(row.hours),
+      }));
+      const migrationKey = `${ACCOUNT_MIGRATION_KEY}:${userId}`;
+      const hasMigrated = window.localStorage.getItem(migrationKey) === "true";
+      let accountEntries = remoteEntries;
+
+      if (!hasMigrated) {
+        const localEntries = readEntries();
+        accountEntries = mergeEntries([...remoteEntries, ...localEntries]).sort(
+          (left, right) => left.date.localeCompare(right.date),
+        );
+        if (accountEntries.length) {
+          const { error: importError } = await supabase
+            .from("study_entries")
+            .upsert(
+              accountEntries.map((entry) => ({
+                user_id: userId,
+                study_date: entry.date,
+                hours: entry.hours,
+              })),
+              { onConflict: "user_id,study_date" },
+            );
+          if (importError) throw importError;
+        }
+      }
+
+      const { data: remotePreferences, error: preferencesError } = await supabase
+        .from("account_preferences")
+        .select("daily_goal_hours, theme")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (preferencesError) throw preferencesError;
+
+      let accountPreferences = {
+        dailyGoalHours,
+        theme,
+      };
+      if (remotePreferences) {
+        accountPreferences = {
+          dailyGoalHours: Number(remotePreferences.daily_goal_hours),
+          theme: remotePreferences.theme,
+        };
+      } else {
+        const { error: preferencesSaveError } = await supabase
+          .from("account_preferences")
+          .upsert({
+            user_id: userId,
+            daily_goal_hours: dailyGoalHours,
+            theme,
+          });
+        if (preferencesSaveError) throw preferencesSaveError;
+      }
+
+      if (!active) return;
+      if (!hasMigrated) {
+        window.localStorage.setItem(migrationKey, "true");
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+      cloudReadyUserRef.current = userId;
+      entryOwnerRef.current = userId;
+      setEntriesOwner(userId);
+      lastSyncedEntriesRef.current = accountEntries;
+      lastSyncedPreferencesRef.current = accountPreferences;
+      setEntries(accountEntries);
+      setDailyGoalHours(accountPreferences.dailyGoalHours);
+      setTheme(accountPreferences.theme);
+      setCloudStatus("synced");
+    }
+
+    loadAccountEntries().catch((error) => {
+      if (!active) return;
+      cloudReadyUserRef.current = null;
+      setCloudMessage(error instanceof Error ? error.message : "Could not load your cloud study data.");
+      setCloudStatus("error");
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [authReady, authUser, ready, cloudAttempt]);
+
+  useEffect(() => {
+    if (!ready || !authReady || entriesOwner !== (authUser?.id ?? null)) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      const storageKey = authUser ? `${STORAGE_KEY}:${authUser.id}` : STORAGE_KEY;
+      window.localStorage.setItem(storageKey, JSON.stringify(entries));
       setStorageError("");
     } catch {
       setStorageError("Your browser could not save changes. Check its storage settings.");
     }
-  }, [entries, ready]);
+  }, [authReady, authUser, entries, entriesOwner, ready]);
+
+  useEffect(() => {
+    if (
+      !authUser ||
+      cloudReadyUserRef.current !== authUser.id ||
+      entryOwnerRef.current !== authUser.id
+    ) return;
+
+    const userId = authUser.id;
+    const nextEntries = entries;
+    setCloudStatus("syncing");
+    syncQueueRef.current = syncQueueRef.current.then(async () => {
+      const previousByDate = new Map(
+        lastSyncedEntriesRef.current.map((entry) => [entry.date, entry.hours]),
+      );
+      const nextByDate = new Map(nextEntries.map((entry) => [entry.date, entry.hours]));
+      const changedEntries = nextEntries.filter(
+        (entry) => previousByDate.get(entry.date) !== entry.hours,
+      );
+      const deletedDates = [...previousByDate.keys()].filter(
+        (dateKey) => !nextByDate.has(dateKey),
+      );
+      const nextPreferences = { dailyGoalHours, theme };
+      const previousPreferences = lastSyncedPreferencesRef.current;
+
+      if (changedEntries.length) {
+        const { error } = await supabase.from("study_entries").upsert(
+          changedEntries.map((entry) => ({
+            user_id: userId,
+            study_date: entry.date,
+            hours: entry.hours,
+          })),
+          { onConflict: "user_id,study_date" },
+        );
+        if (error) throw error;
+      }
+      if (deletedDates.length) {
+        const { error } = await supabase
+          .from("study_entries")
+          .delete()
+          .eq("user_id", userId)
+          .in("study_date", deletedDates);
+        if (error) throw error;
+      }
+      if (
+        !previousPreferences ||
+        previousPreferences.dailyGoalHours !== nextPreferences.dailyGoalHours ||
+        previousPreferences.theme !== nextPreferences.theme
+      ) {
+        const { error } = await supabase.from("account_preferences").upsert({
+          user_id: userId,
+          daily_goal_hours: nextPreferences.dailyGoalHours,
+          theme: nextPreferences.theme,
+        });
+        if (error) throw error;
+      }
+
+      lastSyncedEntriesRef.current = nextEntries;
+      lastSyncedPreferencesRef.current = nextPreferences;
+      if (cloudReadyUserRef.current === userId) {
+        setCloudStatus("synced");
+        setCloudMessage("");
+      }
+    }).catch((error) => {
+      if (cloudReadyUserRef.current === userId) {
+        setCloudMessage(error instanceof Error ? error.message : "Could not sync your study data.");
+        setCloudStatus("error");
+      }
+    });
+  }, [authUser, dailyGoalHours, entries, syncAttempt, theme]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -481,6 +719,44 @@ function App() {
     setNotice("Daily goal updated.");
   }
 
+  async function signInWithGoogle() {
+    if (!supabase) return;
+    setCloudMessage("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) setCloudMessage(error.message);
+    } catch (error) {
+      setCloudMessage(error instanceof Error ? error.message : "Could not start Google sign-in.");
+    }
+  }
+
+  async function signOut() {
+    if (!supabase) return;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        setCloudMessage(error.message);
+        setCloudStatus("error");
+      }
+    } catch (error) {
+      setCloudMessage(error instanceof Error ? error.message : "Could not sign out.");
+      setCloudStatus("error");
+    }
+  }
+
+  function retryCloud() {
+    if (cloudReadyUserRef.current === authUser?.id) {
+      setCloudStatus("synced");
+      setSyncAttempt((attempt) => attempt + 1);
+      return;
+    }
+    setCloudStatus("loading");
+    setCloudAttempt((attempt) => attempt + 1);
+  }
+
   function selectHistoryDate(dateKey) {
     setSelectedHistoryDate((current) => current === dateKey ? "" : dateKey);
   }
@@ -556,6 +832,10 @@ function App() {
     setNotice("Entry deleted.");
   }
 
+  const appDataReady =
+    authReady &&
+    (!authUser || (cloudStatus !== "loading" && cloudStatus !== "error"));
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -598,7 +878,24 @@ function App() {
           </div>
         )}
 
-        {activeTab === "log" && (
+        {!appDataReady ? (
+          <section className="cloud-state-card" role={cloudStatus === "error" ? "alert" : "status"}>
+            <h2>{!authReady || cloudStatus === "loading" ? "Loading your account data…" : "Cloud data needs attention"}</h2>
+            <p>
+              {!authReady
+                ? "Checking your sign-in status."
+                : cloudStatus === "loading"
+                  ? "Fetching your study journal securely from Supabase."
+                  : cloudMessage || "Your data could not be loaded. Your saved entries have not been replaced."}
+            </p>
+            {cloudStatus === "error" && (
+              <div className="cloud-state-actions">
+                <button type="button" className="settings-action-button" onClick={retryCloud}>Retry</button>
+                {authUser && <button type="button" className="settings-action-button secondary" onClick={signOut}>Sign out</button>}
+              </div>
+            )}
+          </section>
+        ) : activeTab === "log" && (
           <section className="log-layout">
             <div className="form-card">
               <div className="card-heading">
@@ -701,7 +998,7 @@ function App() {
           </section>
         )}
 
-        {activeTab === "history" && (
+        {appDataReady && activeTab === "history" && (
           <section className="history-card">
             <div className="section-header">
               <div><div className="section-kicker">YOUR RECORDS · SUNDAY–SATURDAY</div><h2>Study calendar</h2></div>
@@ -825,7 +1122,7 @@ function App() {
           </section>
         )}
 
-        {activeTab === "analytics" && (
+        {appDataReady && activeTab === "analytics" && (
           <section className="analytics-layout">
             <div className="metric-grid">
               <article className="metric-card">
@@ -851,37 +1148,35 @@ function App() {
                 <span className="chart-legend"><span /> Hours studied</span>
               </div>
               <div className="chart-controls">
-                <div className="chart-quick-jumps" role="group" aria-label="Jump to current period">
-                  {[
-                    ["day", "Today"],
-                    ["week", "This week"],
-                    ["month", "This month"],
-                    ["year", "This year"],
-                  ].map(([period, label]) => (
-                    <button
-                      type="button"
-                      className={chartPeriod === period && chartAnchor === today ? "selected" : ""}
-                      aria-pressed={chartPeriod === period && chartAnchor === today}
-                      key={period}
-                      onClick={() => showCurrentRange(period)}
-                    >{label}</button>
-                  ))}
-                </div>
-                <div className="chart-period-select" role="group" aria-label="Chart grouping">
-                  {[
-                    ["day", "Day"],
-                    ["week", "Week"],
-                    ["month", "Month"],
-                    ["year", "Year"],
-                  ].map(([value, label]) => (
-                    <button
-                      type="button"
-                      className={chartPeriod === value ? "selected" : ""}
-                      key={value}
-                      aria-pressed={chartPeriod === value}
-                      onClick={() => setChartPeriod(value)}
-                    >{label}</button>
-                  ))}
+                <div className="chart-range-controls">
+                  <select
+                    className="chart-current-select"
+                    aria-label="Jump to current period"
+                    value={chartAnchor === today ? chartPeriod : ""}
+                    onChange={(event) => showCurrentRange(event.target.value)}
+                  >
+                    <option value="">Current</option>
+                    <option value="day">Today</option>
+                    <option value="week">This week</option>
+                    <option value="month">This month</option>
+                    <option value="year">This year</option>
+                  </select>
+                  <div className="chart-period-select" role="group" aria-label="Chart grouping">
+                    {[
+                      ["day", "Day"],
+                      ["week", "Week"],
+                      ["month", "Month"],
+                      ["year", "Year"],
+                    ].map(([value, label]) => (
+                      <button
+                        type="button"
+                        className={chartPeriod === value ? "selected" : ""}
+                        key={value}
+                        aria-pressed={chartPeriod === value}
+                        onClick={() => setChartPeriod(value)}
+                      >{label}</button>
+                    ))}
+                  </div>
                 </div>
                 <div className="chart-navigation">
                   <button type="button" aria-label="Previous chart range" onClick={() => moveChartPeriod(-1)}><ChevronLeft size={17} /></button>
@@ -971,7 +1266,7 @@ function App() {
           </section>
         )}
 
-        {activeTab === "settings" && (
+        {appDataReady && activeTab === "settings" && (
           <SettingsView
             appVersion={packageMetadata.version}
             buildNumber={packageMetadata.buildNumber}
@@ -981,6 +1276,14 @@ function App() {
             kofiUrl={import.meta.env.VITE_KOFI_URL || "https://ko-fi.com/ajayreddytech"}
             paypalUrl={import.meta.env.VITE_PAYPAL_ME_URL || ""}
             githubSponsorsUrl={import.meta.env.VITE_GITHUB_SPONSORS_URL || ""}
+            authConfigured={Boolean(supabase)}
+            authLoading={!authReady}
+            userEmail={authUser?.email || ""}
+            cloudStatus={cloudStatus}
+            cloudMessage={cloudMessage}
+            onGoogleSignIn={signInWithGoogle}
+            onSignOut={signOut}
+            onRetryCloud={retryCloud}
             onLinkError={() => setNotice("Could not open that link. Check whether a browser or email app is available.")}
           />
         )}

@@ -3,9 +3,11 @@ import {
   ArrowUpRight,
   BookOpen,
   Coffee,
+  Cloud,
   ExternalLink,
   FileText,
   Heart,
+  LogOut,
   Mail,
   ShieldCheck,
   X,
@@ -33,6 +35,14 @@ const THIRD_PARTY_LICENSES = [
  * @property {string} kofiUrl
  * @property {string} paypalUrl
  * @property {string} githubSponsorsUrl
+ * @property {boolean} authConfigured
+ * @property {boolean} authLoading
+ * @property {string} userEmail
+ * @property {string} cloudStatus
+ * @property {string} cloudMessage
+ * @property {() => void} onGoogleSignIn
+ * @property {() => void} onSignOut
+ * @property {() => void} onRetryCloud
  * @property {(error: Error) => void} onLinkError
  */
 
@@ -48,6 +58,14 @@ function SettingsView({
   kofiUrl,
   paypalUrl,
   githubSponsorsUrl,
+  authConfigured,
+  authLoading,
+  userEmail,
+  cloudStatus,
+  cloudMessage,
+  onGoogleSignIn,
+  onSignOut,
+  onRetryCloud,
   onLinkError,
 }) {
   const [licensesOpen, setLicensesOpen] = useState(false);
@@ -104,6 +122,49 @@ function SettingsView({
 
   return (
     <section className="settings-layout" aria-label="Settings and app information">
+      <article className="settings-card account-card">
+        <div className="settings-section-heading">
+          <span className="settings-section-icon"><Cloud size={18} /></span>
+          <div><h2>Account &amp; cloud sync</h2><p>Your study journal, available across your devices.</p></div>
+        </div>
+        {!authConfigured ? (
+          <p className="account-status-message" role="status">
+            Google sign-in is not configured yet. Your entries remain saved in this browser.
+          </p>
+        ) : authLoading ? (
+          <p className="account-status-message" role="status">Checking your sign-in status…</p>
+        ) : userEmail ? (
+          <>
+            <p className="account-email">{userEmail}</p>
+            <p className={`account-status-message ${cloudStatus === "error" ? "account-status-error" : ""}`} role={cloudStatus === "error" ? "alert" : "status"}>
+              {cloudStatus === "synced" ? "Your study data is saved to your cloud account."
+                : cloudStatus === "syncing" ? "Syncing your latest changes…"
+                  : cloudStatus === "error" ? cloudMessage || "Cloud sync needs attention."
+                    : "Connecting to your cloud account…"}
+            </p>
+            <div className="settings-button-row">
+              {cloudStatus === "error" && (
+                <button className="settings-action-button" type="button" onClick={onRetryCloud}>Retry sync</button>
+              )}
+              <button className="settings-action-button secondary" type="button" onClick={onSignOut}>
+                <LogOut size={16} /> Sign out
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="account-status-message">
+              Sign in with Google to back up your study data and use it on other devices. Your existing browser entries will be imported on first sign-in; matching dates are combined.
+            </p>
+            {cloudMessage && <p className="account-status-error" role="alert">{cloudMessage}</p>}
+            <button className="settings-action-button" type="button" onClick={onGoogleSignIn}>
+              Continue with Google
+            </button>
+            <p className="account-footnote">New accounts are created automatically the first time you sign in.</p>
+          </>
+        )}
+      </article>
+
       <article className="settings-card">
         <div className="settings-section-heading">
           <span className="settings-section-icon"><ShieldCheck size={18} /></span>

@@ -43,11 +43,12 @@ Store links are placeholders and are **not live**. Replace them only after the c
 - **Study log:** Save a date and duration in hours or minutes; minutes are converted to hours.
 - **Daily goal:** Configure a daily target and view current progress.
 - **History calendar:** Browse monthly records, add sessions, edit a day's total, or delete a day's record.
-- **Insights:** Review total hours, calendar-day averages, streaks, day/week/month/year charts, weekly and monthly goal progress, and a candid estimate toward 900 hours.
+- **Insights:** Review total hours, calendar-day averages, streaks, day/week/month/year charts with a quick dropdown for the current day, week, month, or year, weekly and monthly goal progress, and a candid estimate toward 900 hours.
 - **Light and dark themes:** Choose a palette suited to your preference.
 - **Daily reminder:** See a rotating language-learning encouragement.
 - **Settings and support:** View app version, contact support, open the open-source license list, and optionally support development.
-- **Local-first persistence:** Entries and preferences are stored in browser `localStorage`; this project has no backend or account system.
+- **Local persistence:** Without cloud configuration, entries and preferences stay in this browser.
+- **Optional Google sign-in and cloud sync:** When Supabase is configured, study entries, daily goals, and theme preferences sync to the signed-in account. Existing local study entries are imported on first sign-in, combining hours on matching dates.
 - **Responsive interface:** Layout adapts to mobile, tablet, and desktop browser widths.
 
 ## Technology & Architecture
@@ -58,17 +59,17 @@ Store links are placeholders and are **not live**. Replace them only after the c
 | Styling | Hand-authored CSS, Tailwind CSS configuration |
 | Icons | Lucide React |
 | State | React hooks (`useState`, `useEffect`, `useMemo`) |
-| Persistence | Browser `localStorage` |
-| Networking | No application API or backend configured |
+| Persistence | Browser `localStorage`; optional Supabase PostgreSQL per-account cloud sync |
+| Networking | Optional Supabase Auth and database; no custom application server |
 | Native platforms | No Android/iOS wrapper or native project is included |
 | CI/CD | Not configured in this repository |
 | Tests / static analysis | No test runner or lint script is currently configured; `npm run build` is the available release check |
 
 ### Data flow
 
-`src/App.jsx` owns the study entries, preferences, date navigation, and derived analytics. It persists entries and preferences to `localStorage`, and renders the active navigation view. `src/SettingsView.jsx` contains the settings, legal, support, and licenses UI. `src/index.css` contains theme and responsive styles.
+`src/App.jsx` owns the study entries, preferences, date navigation, and derived analytics. It stores data locally and, when configured, syncs entries and preferences to the signed-in Supabase account. `src/supabase.js` initializes the optional Supabase client. `src/SettingsView.jsx` contains account, settings, legal, support, and licenses UI. `supabase/schema.sql` defines the cloud tables and per-user row-level security policies. `src/index.css` contains theme and responsive styles.
 
-All stored study data is browser-local and is not encrypted or synchronized. Clearing browser/site data can remove it. Do not use the app to store sensitive information.
+Without Supabase configuration, data stays in browser `localStorage` and is not synchronized. With Supabase configured, study entries, daily goal, and theme are stored in the account's cloud tables; the browser also keeps a local cache. Clearing browser/site data removes that cache but does not delete cloud records. Do not use the app to store sensitive information.
 
 ## Project Structure
 
@@ -78,9 +79,12 @@ All stored study data is browser-local and is not encrypted or synchronized. Cle
 │   └── favicon.svg
 ├── src/
 │   ├── App.jsx             # App state, logging, history, insights, and navigation
+│   ├── supabase.js         # Optional Supabase client
 │   ├── SettingsView.jsx    # Settings, support links, and license modal
 │   ├── index.css           # Themes, layout, and responsive styles
 │   └── main.jsx            # React entry point
+├── supabase/
+│   └── schema.sql          # Cloud tables and row-level security policies
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── bug_report.md
@@ -135,6 +139,27 @@ Copy `.env.example` to `.env` and set the public URLs used by Settings:
 
 Vite exposes `VITE_` values to the client bundle. Use these variables only for public URLs—**never put passwords, private tokens, signing keys, or other secrets in them**. Restart the dev server after changing `.env`.
 
+### Enable Google sign-in and cloud sync
+
+Cloud sync is optional. Without it, the app continues to save data in the current browser. To enable accounts and cloud storage:
+
+1. Create a Supabase project.
+2. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql). It creates the study-entry and account-preference tables and enables row-level security so each signed-in user can access only their own rows.
+3. In Supabase Authentication settings, enable the Google provider. Create/configure a Google OAuth client using the callback URL shown by Supabase.
+4. Add your local and deployed app URLs to Supabase's allowed redirect URLs (for example `http://localhost:5173/**` and your Netlify site URL). Set the Supabase site URL to the deployed site.
+5. Copy the project URL and public anon/publishable key into `.env`:
+
+   ```text
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-public-anon-or-publishable-key
+   ```
+
+   These are browser-visible public configuration values. **Never use or publish a Supabase `service_role` key.**
+6. For Netlify, set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values in the site's environment-variable settings, then deploy again. The Netlify URL must also be on Supabase's allowed redirect list.
+7. Test Google sign-in and sign-out on both localhost and the deployed HTTPS site. First sign-in imports existing local study entries and adds hours for dates already present in the account.
+
+New users are created automatically by Google OAuth on their first sign-in. Changes sync while the app is open; reopen the app on another device to fetch the latest cloud data. Live cross-device updates are not currently enabled. Each browser keeps a local cache as well.
+
 ### Production build
 
 ```bash
@@ -151,6 +176,17 @@ The production output is written to `dist/`. Deploy that directory to a static w
 3. Leave the build settings as detected from `netlify.toml` (`npm run build`, publish directory `dist`) and deploy.
 
 The Netlify configuration also provides a single-page-app fallback so direct page loads resolve to the app. To set optional public links for a Netlify deployment, add the corresponding `VITE_` variables under **Site configuration** → **Environment variables**, then trigger a new deploy. Do not add secrets to `VITE_` variables.
+
+## Before a public launch
+
+- Publish accurate privacy and terms pages; explain Google sign-in, cloud storage, retention, and how users can request account/data deletion.
+- Configure and test OAuth redirect URLs for localhost and the final HTTPS domain.
+- Test account isolation and row-level security with at least two separate test accounts; verify read, create, edit, and delete behavior.
+- Add a user-facing data export and account/data deletion flow, including deletion from Supabase.
+- Decide on backup/restore, outage response, and a migration plan; review the provider's current free-tier quotas and pricing because free plans and limits can change.
+- Add automated tests for login, local-data import, sync failures/retries, account switching, and data access rules; run them in CI for every pull request.
+- Verify accessibility, mobile layouts, browser support, error states, and a production build on the deployed Netlify site.
+- Set up a custom domain, HTTPS, support contact, dependency/security update process, and basic uptime/error monitoring.
 
 ## Testing & Quality Assurance
 

@@ -365,10 +365,8 @@ body { background: #101116; color: #e6e5ed; }
 .selection-button.selection-delete:hover { background: #3b2931; }
 
 .chart-controls { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.chart-quick-jumps { width: 100%; display: flex; flex-wrap: wrap; gap: 5px; }
-.chart-quick-jumps button { min-height: 29px; padding: 0 9px; color: #a7a6b4; background: #1c1d25; border: 1px solid #33343f; border-radius: 7px; font-size: 9px; cursor: pointer; }
-.chart-quick-jumps button:hover { color: #e3e1f6; border-color: #5b567e; }
-.chart-quick-jumps button.selected { color: #d2ceff; background: #302e45; border-color: #4d4969; }
+.chart-range-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chart-current-select { min-height: 35px; padding: 0 9px; color: #d2ceff; background: #302e45; border: 1px solid #4d4969; border-radius: 9px; font-size: 10px; cursor: pointer; }
 .chart-period-select { padding: 3px; display: flex; gap: 2px; background: #14151c; border: 1px solid #2f303b; border-radius: 9px; }
 .chart-period-select button { padding: 6px 10px; color: #a7a6b4; background: transparent; border: 0; border-radius: 6px; font-size: 10px; cursor: pointer; transition: background .15s, color .15s; }
 .chart-period-select button:hover { color: #e3e1f6; }
@@ -582,6 +580,7 @@ body { background: #101116; color: #e6e5ed; }
 :root[data-theme="light"] .chart-period-select button { color: #858692; }
 :root[data-theme="light"] .chart-period-select button:hover { color: #3d3c51; }
 :root[data-theme="light"] .chart-period-select button.selected { color: #5652b1; background: #ecebff; }
+:root[data-theme="light"] .chart-current-select { color: #5652b1; background: #ecebff; border-color: #d9d6f4; }
 :root[data-theme="light"] .chart-range-empty { color: #92939d; }
 :root[data-theme="light"] .theme-toggle { color: #6763bf; background: #f0efff; border-color: #e0def8; }
 :root[data-theme="light"] .theme-toggle:hover { background: #e8e6ff; border-color: #ccc9f0; }
@@ -596,12 +595,16 @@ body { background: #101116; color: #e6e5ed; }
 :root[data-theme="light"] .selection-button:hover { background: #eae8ff; }
 :root[data-theme="light"] .selection-button.selection-delete { color: #b94f56; border-color: #f1dcdc; background: #fff4f4; }
 :root[data-theme="light"] .selection-button.selection-delete:hover { background: #ffebeb; }
-:root[data-theme="light"] .chart-quick-jumps button { color: #858692; background: #fff; border-color: #e6e6ed; }
-:root[data-theme="light"] .chart-quick-jumps button:hover { color: #5652b1; border-color: #c9c6eb; }
-:root[data-theme="light"] .chart-quick-jumps button.selected { color: #5652b1; background: #f0efff; border-color: #d9d6f4; }
-
 .settings-layout { display: grid; gap: 14px; padding-bottom: 16px; }
 .settings-card { min-width: 0; padding: 22px 24px; border: 1px solid #34343f; border-radius: 15px; background: #191a22; box-shadow: 0 5px 22px rgba(0, 0, 0, .13); }
+.cloud-state-card { padding: 22px 24px; color: #e9e8f0; background: #191a22; border: 1px solid #34343f; border-radius: 15px; }
+.cloud-state-card h2 { margin: 0 0 8px; font-family: Manrope, sans-serif; font-size: 15px; }
+.cloud-state-card p, .account-status-message, .account-footnote { color: #aaa9b7; font-size: 11px; line-height: 1.6; }
+.cloud-state-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.account-email { margin: 0 0 7px; color: #eeedf5; font-size: 12px; font-weight: 600; }
+.account-status-message { margin: 0 0 12px; }
+.account-status-error { color: #e7a59b; font-size: 11px; line-height: 1.6; }
+.account-footnote { margin: 10px 0 0; font-size: 10px; }
 .settings-section-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .settings-section-icon { width: 37px; height: 37px; flex: 0 0 auto; display: grid; place-items: center; color: #b4adff; background: #302e40; border-radius: 11px; }
 .settings-section-heading h2 { margin: 0 0 3px; color: #eeedf5; font-family: Manrope, sans-serif; font-size: 14px; }
@@ -643,12 +646,16 @@ body { background: #101116; color: #e6e5ed; }
 .license-footnote { margin-bottom: 0; }
 
 :root[data-theme="light"] .settings-card,
+:root[data-theme="light"] .cloud-state-card,
 :root[data-theme="light"] .license-modal { color: #252837; background: #fff; border-color: #e7e6ed; box-shadow: 0 5px 22px rgba(37, 40, 55, .06); }
 :root[data-theme="light"] .settings-section-icon,
 :root[data-theme="light"] .settings-link-icon { color: #6965c8; background: #f0efff; }
 :root[data-theme="light"] .settings-section-heading h2,
 :root[data-theme="light"] .license-modal-heading h2 { color: #303242; }
 :root[data-theme="light"] .settings-section-heading p,
+:root[data-theme="light"] .cloud-state-card p,
+:root[data-theme="light"] .account-status-message,
+:root[data-theme="light"] .account-footnote,
 :root[data-theme="light"] .copyright-line,
 :root[data-theme="light"] .support-compliance-note,
 :root[data-theme="light"] .license-intro,
@@ -665,7 +672,9 @@ body { background: #101116; color: #e6e5ed; }
 :root[data-theme="light"] .license-list small { color: #92939d; }
 :root[data-theme="light"] .settings-notice { color: #89642f; }
 :root[data-theme="light"] .app-info-list dd,
+:root[data-theme="light"] .account-email,
 :root[data-theme="light"] .license-list strong { color: #303242; }
+:root[data-theme="light"] .account-status-error { color: #a34e4e; }
 :root[data-theme="light"] .settings-action-button { color: #fff; background: #6965c8; border-color: #6965c8; }
 :root[data-theme="light"] .settings-action-button:hover { background: #5652b1; }
 :root[data-theme="light"] .settings-action-button.secondary { color: #5652b1; background: #f3f2ff; border-color: #e2e0f7; }
@@ -688,8 +697,6 @@ body { background: #101116; color: #e6e5ed; }
   .history-selection { align-items: stretch; }
   .history-selection-actions { justify-content: flex-start; }
   .selection-button { flex: 1 1 auto; min-width: 100px; }
-  .chart-quick-jumps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .chart-quick-jumps button { padding: 0 6px; }
   .chart-controls { align-items: stretch; }
   .chart-card .chart-navigation { margin-top: -34px; }
   .calendar-day { min-height: clamp(54px, 16vw, 68px); padding: 5px 4px; }
