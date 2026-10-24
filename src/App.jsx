@@ -858,7 +858,7 @@ function App() {
       <header className="topbar">
         <a className="brand" href="#" onClick={(event) => event.preventDefault()}>
           <img className="brand-mark" src="/frenchefy-logo.png" alt="" aria-hidden="true" />
-          <span>Frenchefy</span>
+          <span>Frenchéfy</span>
         </a>
         <div className="topbar-note"><span className="status-dot" /> Your French practice, in one place</div>
         <button

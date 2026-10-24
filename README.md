@@ -1,12 +1,12 @@
 <div align="center">
 
-# Frenchefy
+# Frenchéfy
 
 **A calm, responsive French-study journal for building a consistent daily learning habit.**
 
 Track study time, review a calendar of sessions, and understand your progress toward a 900-hour goal. Your study records stay in your browser.
 
-[Open Frenchefy](https://frenchefy.netlify.app/) · [Privacy Policy](https://frenchefy.netlify.app/privacy) · [Terms of Service](https://frenchefy.netlify.app/terms)
+[Open Frenchéfy](https://frenchefy.netlify.app/) · [Privacy Policy](https://frenchefy.netlify.app/privacy) · [Terms of Service](https://frenchefy.netlify.app/terms)
 
 ![Build](https://img.shields.io/badge/build-verified%20with%20Vite-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -34,7 +34,7 @@ Replace these placeholders with screenshots captured from the current applicatio
 
 ## Live app
 
-Frenchefy is available as a web app at [frenchefy.netlify.app](https://frenchefy.netlify.app/). No native Android or iOS app is currently published.
+Frenchéfy is available as a web app at [frenchefy.netlify.app](https://frenchefy.netlify.app/). No native Android or iOS app is currently published.
 
 ## Features
 
@@ -115,8 +115,8 @@ Without Supabase configuration, data stays in browser `localStorage` and is not 
 ### Install and run
 
 ```bash
-git clone https://github.com/ajayreddytech/Frenchify.git
-cd Frenchify
+git clone https://github.com/ajayreddytech/Frenchéfy.git
+cd Frenchéfy
 npm ci
 copy .env.example .env
 npm run dev
@@ -153,7 +153,7 @@ Cloud sync is optional. Without it, the app saves entries and preferences in the
    Copy the resulting **Client ID** and **Client secret**. These are Google OAuth credentials; the Client ID is not the Supabase project ID.
 5. **Enable Google in Supabase.** In the Supabase dashboard, open **Authentication → Providers → Google**, enable the provider, enter the Google Client ID and Client secret, and save.
 6. **Set Supabase redirect URLs.** In Supabase, open **Authentication → URL Configuration**. Set the **Site URL** to `https://frenchefy.netlify.app`. Add `https://frenchefy.netlify.app` to the allowed redirect URLs. For local testing, also add `http://localhost:5173`.
-7. **Add Supabase’s public client settings to Netlify.** In the Supabase dashboard, open the project’s **Connect** dialog or **Project Settings → API Keys**. Copy the **Project URL** and a **publishable key** (or legacy `anon` public key). In Netlify, open the Frenchefy site’s **Environment variables** settings and add:
+7. **Add Supabase’s public client settings to Netlify.** In the Supabase dashboard, open the project’s **Connect** dialog or **Project Settings → API Keys**. Copy the **Project URL** and a **publishable key** (or legacy `anon` public key). In Netlify, open the Frenchéfy site’s **Environment variables** settings and add:
 
    | Variable name | Value |
    |---|---|
@@ -161,7 +161,7 @@ Cloud sync is optional. Without it, the app saves entries and preferences in the
    | `VITE_SUPABASE_ANON_KEY` | Your Supabase **publishable key** (`sb_publishable_...`) or legacy **anon public** key |
 
    These two values are intentionally used by browser code. **Never use a Supabase secret or `service_role` key here**—those keys bypass row-level security. Do not put Google’s Client secret in Netlify or in this repository; it belongs only in Supabase’s Google provider configuration.
-8. **Redeploy and test.** Trigger a new Netlify deploy so the build receives the variables. Open the live app, go to **Settings → Continue with Google**, then verify that sign-in returns to Frenchefy and study entries sync. Existing browser entries are imported on the first sign-in; hours on matching dates are combined.
+8. **Redeploy and test.** Trigger a new Netlify deploy so the build receives the variables. Open the live app, go to **Settings → Continue with Google**, then verify that sign-in returns to Frenchéfy and study entries sync. Existing browser entries are imported on the first sign-in; hours on matching dates are combined.
 
 New users are created automatically by Google OAuth on their first sign-in. Changes sync while the app is open; reopen the app on another device to fetch the latest cloud data. Live cross-device updates are not currently enabled. Each browser keeps a local cache as well.
 
@@ -210,7 +210,7 @@ Before a release, also manually verify logging/editing/deleting sessions, browse
 - **Privacy policy:** [frenchefy.netlify.app/privacy](https://frenchefy.netlify.app/privacy)
 - **Terms of service:** [frenchefy.netlify.app/terms](https://frenchefy.netlify.app/terms)
 - **License:** This repository is distributed under the [MIT License](./LICENSE).
-- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20Frenchefy)
+- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20Frenchéfy)
 - **Developer support:** [Ko-fi](https://ko-fi.com/ajayreddytech) is voluntary and does not unlock app features.
 
 > This project has not been reviewed or certified as compliant with Google Play or Apple App Store policies. Store requirements depend on the final app package, data practices, disclosures, age/content ratings, and current platform policies. Complete those reviews before submitting.

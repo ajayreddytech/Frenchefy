@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement to Frenchefy
+about: Suggest an improvement to Frenchéfy
 title: "[Feature]: "
 labels: enhancement
 assignees: ""

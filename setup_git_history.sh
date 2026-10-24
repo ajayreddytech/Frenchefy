@@ -46,5 +46,5 @@ Continue with genuine, incremental Conventional Commits as you make changes, e.g
 
 Do not fabricate past changes or release history. Create the first public tag
 only when the corresponding release is actually ready:
-  git tag -a v1.0.0 -m "Frenchefy v1.0.0"
+  git tag -a v1.0.0 -m "Frenchéfy v1.0.0"
 MESSAGE
