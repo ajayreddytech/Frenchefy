@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible problem in The Canadian Dream
+about: Report a reproducible problem in Frenchify
 title: "[Bug]: "
 labels: bug
 assignees: ""

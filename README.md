@@ -1,6 +1,6 @@
 <div align="center">
 
-# The Canadian Dream
+# Frenchify
 
 **A calm, responsive French-study journal for building a consistent daily learning habit.**
 
@@ -115,8 +115,8 @@ Without Supabase configuration, data stays in browser `localStorage` and is not 
 ### Install and run
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/the-canadian-dream.git
-cd the-canadian-dream
+git clone https://github.com/YOUR_GITHUB_USERNAME/frenchify.git
+cd frenchify
 npm ci
 copy .env.example .env
 npm run dev
@@ -203,7 +203,7 @@ Before a release, also manually verify logging/editing/deleting sessions, browse
 - **Privacy policy:** Not yet configured. Set `VITE_LEGAL_DOMAIN` to a domain that serves a public `/privacy` page before collecting or distributing user data.
 - **Terms of service:** Not yet configured. Set `VITE_LEGAL_DOMAIN` to a domain that serves a public `/terms` page if terms are required for your release.
 - **License:** This repository is distributed under the [MIT License](./LICENSE).
-- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20The%20Canadian%20Dream)
+- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20Frenchify)
 - **Developer support:** [Ko-fi](https://ko-fi.com/ajayreddytech) is voluntary and does not unlock app features.
 
 > This project has not been reviewed or certified as compliant with Google Play or Apple App Store policies. Store requirements depend on the final app package, data practices, disclosures, age/content ratings, and current platform policies. Complete those reviews before submitting.

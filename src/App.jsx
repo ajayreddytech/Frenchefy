@@ -23,8 +23,8 @@ import {
 import SettingsView from "./SettingsView.jsx";
 import { supabase } from "./supabase.js";
 
-const STORAGE_KEY = "thecanadiandream-study-entries";
-const ACCOUNT_MIGRATION_KEY = "thecanadiandream-cloud-migration";
+const STORAGE_KEY = "frenchify-study-entries";
+const ACCOUNT_MIGRATION_KEY = "frenchify-cloud-migration";
 const TABS = [
   { id: "log", label: "Log", icon: Plus },
   { id: "history", label: "History", icon: List },
@@ -35,8 +35,8 @@ const DEFAULT_DAILY_GOAL_HOURS = 3;
 const WEEKLY_GOAL_HOURS = 21;
 const MONTHLY_GOAL_HOURS = 90;
 const GOAL_HOURS = 900;
-const THEME_STORAGE_KEY = "thecanadiandream-theme";
-const DAILY_GOAL_STORAGE_KEY = "thecanadiandream-daily-goal";
+const THEME_STORAGE_KEY = "frenchify-theme";
+const DAILY_GOAL_STORAGE_KEY = "frenchify-daily-goal";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const REMINDERS = [
   "Every sentence you understand is a door you have opened.",
@@ -158,8 +158,18 @@ function mergeEntries(entries) {
   return Array.from(totals, ([date, hours]) => ({ date, hours }));
 }
 
+function getStoredValue(key) {
+  const legacyKey = key.replace(/^frenchify-/, "thecanadiandream-");
+  const storedValue = window.localStorage.getItem(key);
+  if (storedValue !== null) return storedValue;
+
+  const legacyValue = window.localStorage.getItem(legacyKey);
+  if (legacyValue !== null) window.localStorage.setItem(key, legacyValue);
+  return legacyValue;
+}
+
 function readEntries() {
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = getStoredValue(STORAGE_KEY);
   if (!raw) return [];
   const parsed = JSON.parse(raw);
   if (!Array.isArray(parsed) || !parsed.every(isEntry)) {
@@ -231,7 +241,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("log");
   const [dailyGoalHours, setDailyGoalHours] = useState(() => {
     try {
-      const savedGoal = Number(window.localStorage.getItem(DAILY_GOAL_STORAGE_KEY));
+      const savedGoal = Number(getStoredValue(DAILY_GOAL_STORAGE_KEY));
       return Number.isFinite(savedGoal) && savedGoal > 0 && savedGoal <= 24
         ? savedGoal
         : DEFAULT_DAILY_GOAL_HOURS;
@@ -243,7 +253,7 @@ function App() {
   const [editingGoal, setEditingGoal] = useState(false);
   const [theme, setTheme] = useState(() => {
     try {
-      return window.localStorage.getItem(THEME_STORAGE_KEY) === "light"
+      return getStoredValue(THEME_STORAGE_KEY) === "light"
         ? "light"
         : "dark";
     } catch {
@@ -355,7 +365,7 @@ function App() {
         hours: Number(row.hours),
       }));
       const migrationKey = `${ACCOUNT_MIGRATION_KEY}:${userId}`;
-      const hasMigrated = window.localStorage.getItem(migrationKey) === "true";
+      const hasMigrated = getStoredValue(migrationKey) === "true";
       let accountEntries = remoteEntries;
 
       if (!hasMigrated) {
@@ -841,7 +851,7 @@ function App() {
       <header className="topbar">
         <a className="brand" href="#" onClick={(event) => event.preventDefault()}>
           <span className="brand-mark"><BookOpen size={18} strokeWidth={2.1} /></span>
-          <span>TheCanadianDream</span>
+          <span>Frenchify</span>
         </a>
         <div className="topbar-note"><span className="status-dot" /> Your French practice, in one place</div>
         <button

@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement to The Canadian Dream
+about: Suggest an improvement to Frenchify
 title: "[Feature]: "
 labels: enhancement
 assignees: ""

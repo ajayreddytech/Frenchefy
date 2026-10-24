@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="18" fill="#24232f"/>
-  <path d="M16 18c6-2 12-1 16 2v29c-4-3-10-4-16-2V18Z" fill="#aaa4f2"/>
-  <path d="M48 18c-6-2-12-1-16 2v29c4-3 10-4 16-2V18Z" fill="#e5e2ff"/>
-  <path d="M32 20v29" stroke="#776fda" stroke-width="2"/>
-  <circle cx="47" cy="17" r="5" fill="#d89b9b"/>
+  <defs>
+    <clipPath id="heart">
+      <path d="M32 7C27 2 22 0 17 0 7 0 0 8 0 19c0 16 16 32 32 45 16-13 32-29 32-45C64 8 57 0 47 0c-5 0-10 2-15 7Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#heart)">
+    <path fill="#0055a4" d="M0 0h18v64H0z"/>
+    <path fill="#fff" d="M18 0h28v64H18z"/>
+    <path fill="#ef4135" d="M46 0h18v64H46z"/>
+  </g>
 </svg>

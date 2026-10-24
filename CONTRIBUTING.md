@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering a contribution to The Canadian Dream.
+Thank you for considering a contribution to Frenchify.
 
 ## Before you start
 

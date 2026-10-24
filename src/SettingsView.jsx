@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-const APP_NAME = "The Canadian Dream";
+const APP_NAME = "Frenchify";
 const THIRD_PARTY_LICENSES = [
   { name: "React", version: "18.3.1", license: "MIT" },
   { name: "React DOM", version: "18.3.1", license: "MIT" },
