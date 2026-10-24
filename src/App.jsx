@@ -857,7 +857,7 @@ function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#" onClick={(event) => event.preventDefault()}>
-          <img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true" />
+          <img className="brand-mark" src="/frenchefy-logo.png" alt="" aria-hidden="true" />
           <span>Frenchefy</span>
         </a>
         <div className="topbar-note"><span className="status-dot" /> Your French practice, in one place</div>

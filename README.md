@@ -74,7 +74,7 @@ Without Supabase configuration, data stays in browser `localStorage` and is not 
 ```text
 .
 ├── public/
-│   ├── favicon.svg
+│   ├── frenchefy-logo.png
 │   ├── privacy.html
 │   └── terms.html
 ├── src/
@@ -139,22 +139,29 @@ Vite exposes `VITE_` values to the client bundle. Use these variables only for p
 
 ### Enable Google sign-in and cloud sync
 
-Cloud sync is optional. Without it, the app continues to save data in the current browser. To enable accounts and cloud storage:
+Cloud sync is optional. Without it, the app saves entries and preferences in the current browser. The published app is [frenchefy.netlify.app](https://frenchefy.netlify.app/). To enable Google sign-in and Supabase storage:
 
-1. Create a Supabase project.
-2. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql). It creates the study-entry and account-preference tables and enables row-level security so each signed-in user can access only their own rows.
-3. In Supabase Authentication settings, enable the Google provider. Create/configure a Google OAuth client using the callback URL shown by Supabase.
-4. Add your local and deployed app URLs to Supabase's allowed redirect URLs (for example `http://localhost:5173/**` and your Netlify site URL). Set the Supabase site URL to the deployed site.
-5. Copy the project URL and public anon/publishable key into `.env`:
+1. **Create a Supabase project.** In the Supabase dashboard, create a project and wait for it to finish provisioning.
+2. **Create the app tables.** Open **SQL Editor** in the Supabase project, paste the contents of [`supabase/schema.sql`](./supabase/schema.sql), and run it. It creates study-entry and account-preference tables with row-level security policies restricting each signed-in user to their own records.
+3. **Set up the Google OAuth consent screen.** In [Google Auth Platform](https://console.cloud.google.com/auth/overview), configure the app branding and choose **External** audience. While testing, leave the app in testing and add the Google accounts that need access as test users. Use only the basic sign-in scopes (`openid`, `email`, and `profile`).
+4. **Create a Google web OAuth client.** In **Google Auth Platform → Clients**, choose **Create client → Web application**. Add `https://frenchefy.netlify.app` under **Authorized JavaScript origins**; add `http://localhost:5173` if testing locally. Under **Authorized redirect URIs**, add the callback shown in your Supabase Google provider settings. For this project, the callback is:
 
    ```text
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-public-anon-or-publishable-key
+   https://ulfjoktutqkjrrjvbqgl.supabase.co/auth/v1/callback
    ```
 
-   These are browser-visible public configuration values. **Never use or publish a Supabase `service_role` key.**
-6. For Netlify, set the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` values in the site's environment-variable settings, then deploy again. The Netlify URL must also be on Supabase's allowed redirect list.
-7. Test Google sign-in and sign-out on both localhost and the deployed HTTPS site. First sign-in imports existing local study entries and adds hours for dates already present in the account.
+   Copy the resulting **Client ID** and **Client secret**. These are Google OAuth credentials; the Client ID is not the Supabase project ID.
+5. **Enable Google in Supabase.** In the Supabase dashboard, open **Authentication → Providers → Google**, enable the provider, enter the Google Client ID and Client secret, and save.
+6. **Set Supabase redirect URLs.** In Supabase, open **Authentication → URL Configuration**. Set the **Site URL** to `https://frenchefy.netlify.app`. Add `https://frenchefy.netlify.app` to the allowed redirect URLs. For local testing, also add `http://localhost:5173`.
+7. **Add Supabase’s public client settings to Netlify.** In the Supabase dashboard, open the project’s **Connect** dialog or **Project Settings → API Keys**. Copy the **Project URL** and a **publishable key** (or legacy `anon` public key). In Netlify, open the Frenchefy site’s **Environment variables** settings and add:
+
+   | Variable name | Value |
+   |---|---|
+   | `VITE_SUPABASE_URL` | Your Supabase **Project URL**, e.g. `https://ulfjoktutqkjrrjvbqgl.supabase.co` |
+   | `VITE_SUPABASE_ANON_KEY` | Your Supabase **publishable key** (`sb_publishable_...`) or legacy **anon public** key |
+
+   These two values are intentionally used by browser code. **Never use a Supabase secret or `service_role` key here**—those keys bypass row-level security. Do not put Google’s Client secret in Netlify or in this repository; it belongs only in Supabase’s Google provider configuration.
+8. **Redeploy and test.** Trigger a new Netlify deploy so the build receives the variables. Open the live app, go to **Settings → Continue with Google**, then verify that sign-in returns to Frenchefy and study entries sync. Existing browser entries are imported on the first sign-in; hours on matching dates are combined.
 
 New users are created automatically by Google OAuth on their first sign-in. Changes sync while the app is open; reopen the app on another device to fetch the latest cloud data. Live cross-device updates are not currently enabled. Each browser keeps a local cache as well.
 
@@ -170,8 +177,9 @@ The production output is written to `dist/`. Deploy that directory to a static w
 ### Deploy to Netlify
 
 1. Push this repository to GitHub.
-2. In Netlify, choose **Add new site** → **Import an existing project**, then connect your GitHub repository.
-3. Leave the build settings as detected from `netlify.toml` (`npm run build`, publish directory `dist`) and deploy.
+2. In Netlify, open the site serving `frenchefy.netlify.app`, or choose **Add new site** → **Import an existing project** and connect this GitHub repository.
+3. Use the build settings in `netlify.toml` (`npm run build`, publish directory `dist`) and configure the Supabase variables above under **Site configuration → Environment variables**.
+4. Deploy. Verify the app at [frenchefy.netlify.app](https://frenchefy.netlify.app/), the [Privacy Policy](https://frenchefy.netlify.app/privacy), and the [Terms of Service](https://frenchefy.netlify.app/terms).
 
 The Netlify configuration serves the static privacy and terms pages at `/privacy` and `/terms`, and provides a single-page-app fallback for app routes. To set optional public links for a Netlify deployment, add the corresponding `VITE_` variables under **Site configuration** → **Environment variables**, then trigger a new deploy. Do not add secrets to `VITE_` variables.
 
