@@ -23,8 +23,8 @@ import {
 import SettingsView from "./SettingsView.jsx";
 import { supabase } from "./supabase.js";
 
-const STORAGE_KEY = "frenchify-study-entries";
-const ACCOUNT_MIGRATION_KEY = "frenchify-cloud-migration";
+const STORAGE_KEY = "frenchefy-study-entries";
+const ACCOUNT_MIGRATION_KEY = "frenchefy-cloud-migration";
 const TABS = [
   { id: "log", label: "Log", icon: Plus },
   { id: "history", label: "History", icon: List },
@@ -35,8 +35,8 @@ const DEFAULT_DAILY_GOAL_HOURS = 3;
 const WEEKLY_GOAL_HOURS = 21;
 const MONTHLY_GOAL_HOURS = 90;
 const GOAL_HOURS = 900;
-const THEME_STORAGE_KEY = "frenchify-theme";
-const DAILY_GOAL_STORAGE_KEY = "frenchify-daily-goal";
+const THEME_STORAGE_KEY = "frenchefy-theme";
+const DAILY_GOAL_STORAGE_KEY = "frenchefy-daily-goal";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const REMINDERS = [
   "Every sentence you understand is a door you have opened.",
@@ -159,13 +159,20 @@ function mergeEntries(entries) {
 }
 
 function getStoredValue(key) {
-  const legacyKey = key.replace(/^frenchify-/, "thecanadiandream-");
   const storedValue = window.localStorage.getItem(key);
   if (storedValue !== null) return storedValue;
 
-  const legacyValue = window.localStorage.getItem(legacyKey);
-  if (legacyValue !== null) window.localStorage.setItem(key, legacyValue);
-  return legacyValue;
+  for (const prefix of ["frenchify-", "thecanadiandream-"]) {
+    if (!key.startsWith("frenchefy-")) continue;
+    const legacyValue = window.localStorage.getItem(
+      `${prefix}${key.slice("frenchefy-".length)}`,
+    );
+    if (legacyValue !== null) {
+      window.localStorage.setItem(key, legacyValue);
+      return legacyValue;
+    }
+  }
+  return null;
 }
 
 function readEntries() {
@@ -850,8 +857,8 @@ function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#" onClick={(event) => event.preventDefault()}>
-          <span className="brand-mark"><BookOpen size={18} strokeWidth={2.1} /></span>
-          <span>Frenchify</span>
+          <img className="brand-mark" src="/favicon.svg" alt="" aria-hidden="true" />
+          <span>Frenchefy</span>
         </a>
         <div className="topbar-note"><span className="status-dot" /> Your French practice, in one place</div>
         <button
@@ -1282,10 +1289,8 @@ function App() {
             buildNumber={packageMetadata.buildNumber}
             developerName="Ajay Kumar Reddy"
             supportEmail="ajayreddy.tech@gmail.com"
-            legalDomain={import.meta.env.VITE_LEGAL_DOMAIN || ""}
+            legalDomain={import.meta.env.VITE_LEGAL_DOMAIN || "frenchefy.netlify.app"}
             kofiUrl={import.meta.env.VITE_KOFI_URL || "https://ko-fi.com/ajayreddytech"}
-            paypalUrl={import.meta.env.VITE_PAYPAL_ME_URL || ""}
-            githubSponsorsUrl={import.meta.env.VITE_GITHUB_SPONSORS_URL || ""}
             authConfigured={Boolean(supabase)}
             authLoading={!authReady}
             userEmail={authUser?.email || ""}

@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for considering a contribution to Frenchify.
+Thank you for considering a contribution to Frenchefy.
 
 ## Before you start
 

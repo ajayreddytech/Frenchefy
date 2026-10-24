@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible problem in Frenchify
+about: Report a reproducible problem in Frenchefy
 title: "[Bug]: "
 labels: bug
 assignees: ""

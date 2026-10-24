@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-const APP_NAME = "Frenchify";
+const APP_NAME = "Frenchefy";
 const THIRD_PARTY_LICENSES = [
   { name: "React", version: "18.3.1", license: "MIT" },
   { name: "React DOM", version: "18.3.1", license: "MIT" },
@@ -33,8 +33,6 @@ const THIRD_PARTY_LICENSES = [
  * @property {string} supportEmail
  * @property {string} legalDomain
  * @property {string} kofiUrl
- * @property {string} paypalUrl
- * @property {string} githubSponsorsUrl
  * @property {boolean} authConfigured
  * @property {boolean} authLoading
  * @property {string} userEmail
@@ -56,8 +54,6 @@ function SettingsView({
   supportEmail,
   legalDomain,
   kofiUrl,
-  paypalUrl,
-  githubSponsorsUrl,
   authConfigured,
   authLoading,
   userEmail,
@@ -179,7 +175,6 @@ function SettingsView({
             <ArrowUpRight size={16} aria-hidden="true" />
           </button>
         </div>
-        {!legalDomain && <p className="settings-notice">Add a hosted privacy policy and terms URL before publishing this app.</p>}
       </article>
 
       <article className="settings-card">
@@ -205,26 +200,16 @@ function SettingsView({
       <article className="settings-card support-card">
         <div className="settings-section-heading">
           <span className="settings-section-icon support-icon"><Coffee size={18} /></span>
-          <div><h2>Support the developer</h2><p>Help keep this independent project going.</p></div>
+          <div><h2>Support the developer</h2><p>Optional support helps sustain ongoing maintenance.</p></div>
         </div>
         <div className="settings-button-row support-link-row">
           {kofiUrl ? (
             <button className="settings-action-button" type="button" onClick={() => openSystemLink(kofiUrl)}>
-              <Coffee size={16} /> Support via Ko-fi / Card / PayPal <ExternalLink size={14} />
+              <Coffee size={16} /> Support on Ko-fi <ExternalLink size={14} />
             </button>
-          ) : <span className="support-unavailable">Ko-fi is not configured</span>}
-          {paypalUrl ? (
-            <button className="settings-action-button secondary" type="button" onClick={() => openSystemLink(paypalUrl)}>
-              <Heart size={16} /> PayPal.me <ExternalLink size={14} />
-            </button>
-          ) : <span className="support-unavailable">PayPal.me is not configured</span>}
-          {githubSponsorsUrl ? (
-            <button className="settings-action-button secondary" type="button" onClick={() => openSystemLink(githubSponsorsUrl)}>
-              <BookOpen size={16} /> GitHub Sponsors <ExternalLink size={14} />
-            </button>
-          ) : <span className="support-unavailable">GitHub Sponsors is not configured</span>}
+          ) : null}
         </div>
-        <p className="support-compliance-note">Voluntary support helps keep this app free and independently maintained. Contributions do not unlock digital features.</p>
+        <p className="support-compliance-note">Ko-fi support is entirely optional and does not provide paid features or preferential access.</p>
       </article>
 
       {licensesOpen && (

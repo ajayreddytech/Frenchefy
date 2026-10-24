@@ -1,10 +1,12 @@
 <div align="center">
 
-# Frenchify
+# Frenchefy
 
 **A calm, responsive French-study journal for building a consistent daily learning habit.**
 
 Track study time, review a calendar of sessions, and understand your progress toward a 900-hour goal. Your study records stay in your browser.
+
+[Open Frenchefy](https://frenchefy.netlify.app/) · [Privacy Policy](https://frenchefy.netlify.app/privacy) · [Terms of Service](https://frenchefy.netlify.app/terms)
 
 ![Build](https://img.shields.io/badge/build-verified%20with%20Vite-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -30,13 +32,9 @@ Replace these placeholders with screenshots captured from the current applicatio
 |:---:|:---:|
 | *Add `docs/screenshots/insights.png`* | *Add `docs/screenshots/settings.png`* |
 
-## Download
+## Live app
 
-Store links are placeholders and are **not live**. Replace them only after the corresponding store listings have been approved and published.
-
-| Google Play | Apple App Store |
-|:---:|:---:|
-| <a href="https://play.google.com/store/apps/details?id=com.yourdomain.appname"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="190" alt="Get it on Google Play (placeholder listing)" /></a> | <a href="https://apps.apple.com/app/id0000000000"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" width="160" alt="Download on the App Store (placeholder listing)" /></a> |
+Frenchefy is available as a web app at [frenchefy.netlify.app](https://frenchefy.netlify.app/). No native Android or iOS app is currently published.
 
 ## Features
 
@@ -76,7 +74,9 @@ Without Supabase configuration, data stays in browser `localStorage` and is not 
 ```text
 .
 ├── public/
-│   └── favicon.svg
+│   ├── favicon.svg
+│   ├── privacy.html
+│   └── terms.html
 ├── src/
 │   ├── App.jsx             # App state, logging, history, insights, and navigation
 │   ├── supabase.js         # Optional Supabase client
@@ -115,8 +115,8 @@ Without Supabase configuration, data stays in browser `localStorage` and is not 
 ### Install and run
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/frenchify.git
-cd frenchify
+git clone https://github.com/ajayreddytech/Frenchify.git
+cd Frenchify
 npm ci
 copy .env.example .env
 npm run dev
@@ -132,10 +132,8 @@ Copy `.env.example` to `.env` and set the public URLs used by Settings:
 
 | Variable | Purpose |
 |---|---|
-| `VITE_LEGAL_DOMAIN` | Domain serving `/privacy` and `/terms`, without a protocol or trailing slash |
+| `VITE_LEGAL_DOMAIN` | Hostname serving `/privacy` and `/terms`; defaults to `frenchefy.netlify.app` |
 | `VITE_KOFI_URL` | Public Ko-fi page URL |
-| `VITE_PAYPAL_ME_URL` | Optional PayPal.me URL |
-| `VITE_GITHUB_SPONSORS_URL` | Optional GitHub Sponsors URL |
 
 Vite exposes `VITE_` values to the client bundle. Use these variables only for public URLs—**never put passwords, private tokens, signing keys, or other secrets in them**. Restart the dev server after changing `.env`.
 
@@ -175,11 +173,11 @@ The production output is written to `dist/`. Deploy that directory to a static w
 2. In Netlify, choose **Add new site** → **Import an existing project**, then connect your GitHub repository.
 3. Leave the build settings as detected from `netlify.toml` (`npm run build`, publish directory `dist`) and deploy.
 
-The Netlify configuration also provides a single-page-app fallback so direct page loads resolve to the app. To set optional public links for a Netlify deployment, add the corresponding `VITE_` variables under **Site configuration** → **Environment variables**, then trigger a new deploy. Do not add secrets to `VITE_` variables.
+The Netlify configuration serves the static privacy and terms pages at `/privacy` and `/terms`, and provides a single-page-app fallback for app routes. To set optional public links for a Netlify deployment, add the corresponding `VITE_` variables under **Site configuration** → **Environment variables**, then trigger a new deploy. Do not add secrets to `VITE_` variables.
 
-## Before a public launch
+## Production readiness
 
-- Publish accurate privacy and terms pages; explain Google sign-in, cloud storage, retention, and how users can request account/data deletion.
+- Review the published [Privacy Policy](https://frenchefy.netlify.app/privacy) and [Terms of Service](https://frenchefy.netlify.app/terms) against the final hosting, data-retention, and account-deletion practices before launch or material changes.
 - Configure and test OAuth redirect URLs for localhost and the final HTTPS domain.
 - Test account isolation and row-level security with at least two separate test accounts; verify read, create, edit, and delete behavior.
 - Add a user-facing data export and account/data deletion flow, including deletion from Supabase.
@@ -200,10 +198,11 @@ Before a release, also manually verify logging/editing/deleting sessions, browse
 
 ## Legal & Contact
 
-- **Privacy policy:** Not yet configured. Set `VITE_LEGAL_DOMAIN` to a domain that serves a public `/privacy` page before collecting or distributing user data.
-- **Terms of service:** Not yet configured. Set `VITE_LEGAL_DOMAIN` to a domain that serves a public `/terms` page if terms are required for your release.
+- **Live app:** [frenchefy.netlify.app](https://frenchefy.netlify.app/)
+- **Privacy policy:** [frenchefy.netlify.app/privacy](https://frenchefy.netlify.app/privacy)
+- **Terms of service:** [frenchefy.netlify.app/terms](https://frenchefy.netlify.app/terms)
 - **License:** This repository is distributed under the [MIT License](./LICENSE).
-- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20Frenchify)
+- **Support:** [Email Ajay Kumar Reddy](mailto:ajayreddy.tech@gmail.com?subject=App%20Support%20Request%20-%20Frenchefy)
 - **Developer support:** [Ko-fi](https://ko-fi.com/ajayreddytech) is voluntary and does not unlock app features.
 
 > This project has not been reviewed or certified as compliant with Google Play or Apple App Store policies. Store requirements depend on the final app package, data practices, disclosures, age/content ratings, and current platform policies. Complete those reviews before submitting.
