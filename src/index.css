@@ -124,17 +124,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .chart-heading h2 { font-size: 15px; }
 .chart-legend { display: flex; align-items: center; gap: 6px; color: #92939e; font-size: 9px; }
 .chart-legend span { width: 7px; height: 7px; background: #7975d0; border-radius: 2px; }
-.chart-area { height: 190px; position: relative; margin-top: 19px; padding-left: 30px; }
-.chart-guides { position: absolute; inset: 0 auto 22px 0; display: flex; flex-direction: column; justify-content: space-between; color: #a6a7b0; font-size: 8px; }
-.bar-chart { height: 100%; display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 9px; border-bottom: 1px solid #ebebef; background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(50% - .5px), #f1f1f4 calc(50% - .5px), #f1f1f4 50%, transparent calc(50% + .5px), transparent 100%); }
-.bar-column { min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
-.bar-track { width: 100%; height: calc(100% - 22px); display: flex; align-items: flex-end; }
-.bar-fill { width: min(100%, 23px); min-height: 0; margin: 0 auto; background: #d9d7f4; border-radius: 4px 4px 1px 1px; transition: height .35s ease, background .2s; }
-.bar-column:hover .bar-fill, .bar-column.is-today .bar-fill { background: #7975d0; }
-.bar-label { width: 38px; height: 22px; overflow: visible; padding-top: 7px; color: #a2a3ad; font-size: 8px; text-align: center; white-space: nowrap; }
-.bar-column.is-today .bar-label { color: #6965c8; font-weight: 700; }
-.chart-empty { height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #a09daa; font-size: 11px; }
-.chart-empty svg { color: #aaa6e7; }
 .insight-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
 .insight-card { min-height: 120px; padding: 17px 19px; display: flex; gap: 12px; border: 1px solid #eae8fb; border-radius: 13px; background: linear-gradient(120deg, #f2f1ff, #faf9ff); }
 .insight-icon { width: 31px; height: 31px; flex: 0 0 auto; display: grid; place-items: center; color: #7873cf; background: #fff; border-radius: 9px; }
@@ -196,9 +185,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .metric-value small { font-size: 10px; }
   .metric-foot { font-size: 8px; line-height: 1.4; }
   .chart-card { padding: 18px 14px 14px; }
-  .chart-area { height: 170px; padding-left: 27px; }
-  .bar-chart { gap: 4px; }
-  .bar-label { font-size: 7px; }
   .insight-grid { grid-template-columns: 1fr; gap: 10px; }
   .period-card { min-height: 120px; }
   .toast { right: 14px; bottom: 94px; }
@@ -289,14 +275,14 @@ body { background: #101116; color: #e6e5ed; }
 .metric-foot { color: #a3a2ae; }
 .chart-legend { color: #aaa9b7; }
 .chart-legend span { background: #918be2; }
-.chart-guides { color: #9e9daa; }
-.bar-chart { border-color: #353540; background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(50% - .5px), #2c2d37 calc(50% - .5px), #2c2d37 50%, transparent calc(50% + .5px), transparent 100%); }
-.bar-fill { background: #514d7e; }
-.bar-column:hover .bar-fill, .bar-column.is-today .bar-fill, .bar-column.has-hours .bar-fill { background: #8580d8; }
-.bar-label { color: #a5a4b1; }
-.bar-column.is-today .bar-label { color: #c2bdff; }
-.chart-empty { color: #aaa9b6; }
-.chart-empty svg { color: #a8a2ec; }
+.study-plot { position: relative; height: 180px; margin-top: 15px; cursor: grab; touch-action: pan-y; user-select: none; }
+.study-plot.is-dragging { cursor: grabbing; }
+.study-plot-svg { display: block; overflow: hidden; }
+.study-plot-grid { stroke: #2c2d37; stroke-width: 1; }
+.study-plot-line { fill: none; stroke: #918be2; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
+.study-plot-dot { fill: #918be2; }
+.study-plot-tick, .study-plot-label { fill: #a6a7b0; font-size: 9px; }
+.study-plot-tip { fill: #d2ceff; font-size: 10px; font-weight: 600; }
 .insight-card { border-color: #39364e; background: linear-gradient(120deg, #242232, #1d1c27); }
 .insight-icon { color: #b4adff; background: #302e40; }
 .insight-content h3 { color: #e8e6f8; }
@@ -371,12 +357,9 @@ body { background: #101116; color: #e6e5ed; }
 .chart-period-select button:hover { color: #e3e1f6; }
 .chart-period-select button.selected { color: #d2ceff; background: #302e45; font-weight: 600; }
 .chart-navigation { display: flex; gap: 6px; }
-.chart-area { margin-top: 15px; }
 .chart-card .chart-controls { flex-direction: column; align-items: stretch; }
 .chart-card .chart-period-select { align-self: flex-start; }
 .chart-card .chart-navigation { align-self: flex-end; margin-top: -34px; }
-.bar-chart.chart-bars-month, .bar-chart.chart-bars-year { gap: 8px; }
-.chart-bars-month .bar-label, .chart-bars-year .bar-label { width: auto; max-width: 100%; overflow: hidden; font-size: 8px; }
 .chart-range-empty { margin: 3px 0 0; color: #aaa9b7; font-size: 10px; text-align: center; }
 .topbar { gap: 16px; }
 .theme-toggle { min-height: 34px; padding: 0 11px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; color: #c6c2f5; background: #29273a; border: 1px solid #3b3852; border-radius: 9px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background .2s, border-color .2s; }
@@ -526,14 +509,11 @@ body { background: #101116; color: #e6e5ed; }
 :root[data-theme="light"] .metric-foot { color: #a0a1aa; }
 :root[data-theme="light"] .chart-legend { color: #92939e; }
 :root[data-theme="light"] .chart-legend span { background: #7975d0; }
-:root[data-theme="light"] .chart-guides { color: #a6a7b0; }
-:root[data-theme="light"] .bar-chart { border-color: #ebebef; background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(50% - .5px), #f1f1f4 calc(50% - .5px), #f1f1f4 50%, transparent calc(50% + .5px), transparent 100%); }
-:root[data-theme="light"] .bar-fill { background: #d9d7f4; }
-:root[data-theme="light"] .bar-column:hover .bar-fill, :root[data-theme="light"] .bar-column.is-today .bar-fill { background: #7975d0; }
-:root[data-theme="light"] .bar-label { color: #a2a3ad; }
-:root[data-theme="light"] .bar-column.is-today .bar-label { color: #6965c8; }
-:root[data-theme="light"] .chart-empty { color: #a09daa; }
-:root[data-theme="light"] .chart-empty svg { color: #aaa6e7; }
+:root[data-theme="light"] .study-plot-grid { stroke: #f1f1f4; }
+:root[data-theme="light"] .study-plot-line, :root[data-theme="light"] .study-plot-dot { stroke: #7975d0; }
+:root[data-theme="light"] .study-plot-dot { fill: #7975d0; }
+:root[data-theme="light"] .study-plot-tick, :root[data-theme="light"] .study-plot-label { fill: #a2a3ad; }
+:root[data-theme="light"] .study-plot-tip { fill: #5652b1; }
 :root[data-theme="light"] .insight-card { border-color: #eae8fb; background: linear-gradient(120deg, #f2f1ff, #faf9ff); }
 :root[data-theme="light"] .insight-icon { color: #7873cf; background: #fff; }
 :root[data-theme="light"] .insight-content h3 { color: #3b3957; }

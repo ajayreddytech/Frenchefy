@@ -21,6 +21,8 @@ import {
   X,
 } from "lucide-react";
 import SettingsView from "./SettingsView.jsx";
+import StudyChart from "./StudyChart.jsx";
+import { getMonthLabel, getWeekStart, localDateKey, shiftDate, shiftMonth, monthLength, formatDate } from "./dates.js";
 import { supabase } from "./supabase.js";
 
 const STORAGE_KEY = "frenchefy-study-entries";
@@ -101,41 +103,6 @@ const REMINDERS = [
   "Keep going gently; there is no deadline on understanding.",
 ];
 
-function localDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function shiftDate(dateKey, amount) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() + amount);
-  return localDateKey(date);
-}
-
-function shiftMonth(dateKey, amount) {
-  const [year, month] = dateKey.split("-").map(Number);
-  return localDateKey(new Date(year, month - 1 + amount, 1));
-}
-
-function monthLength(dateKey) {
-  const [year, month] = dateKey.split("-").map(Number);
-  return new Date(year, month, 0).getDate();
-}
-
-function getMonthLabel(dateKey) {
-  return formatDate(`${dateKey.slice(0, 7)}-01`, { month: "long", year: "numeric" });
-}
-
-function formatDate(dateKey, options = { weekday: "short", month: "short", day: "numeric" }) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  return new Intl.DateTimeFormat("en", options).format(
-    new Date(year, month - 1, day),
-  );
-}
-
 function formatHours(value) {
   return Number(value.toFixed(2)).toString();
 }
@@ -187,13 +154,6 @@ function readEntries() {
 
 function sumEntries(entries) {
   return entries.reduce((sum, entry) => sum + entry.hours, 0);
-}
-
-function getWeekStart(dateKey) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() - date.getDay());
-  return localDateKey(date);
 }
 
 function getDailyReminder() {
@@ -273,8 +233,6 @@ function App() {
   const [editingDate, setEditingDate] = useState(null);
   const [historyMonth, setHistoryMonth] = useState(`${localDateKey().slice(0, 7)}-01`);
   const [selectedHistoryDate, setSelectedHistoryDate] = useState(localDateKey());
-  const [chartPeriod, setChartPeriod] = useState("day");
-  const [chartAnchor, setChartAnchor] = useState(localDateKey());
   const [notice, setNotice] = useState("");
   const [storageError, setStorageError] = useState("");
   const [ready, setReady] = useState(false);
@@ -648,80 +606,6 @@ function App() {
   const historyMonthHours = entries
     .filter((entry) => entry.date.startsWith(historyMonth.slice(0, 7)))
     .reduce((sum, entry) => sum + entry.hours, 0);
-
-  const chartData = (() => {
-    if (chartPeriod === "day") {
-      return Array.from({ length: 14 }, (_, index) => {
-        const day = shiftDate(chartAnchor, index - 13);
-        return { key: day, date: day, label: formatDate(day, { month: "short", day: "numeric" }), hours: entryByDate.get(day)?.hours ?? 0 };
-      });
-    }
-    if (chartPeriod === "week") {
-      const currentWeek = getWeekStart(chartAnchor);
-      return Array.from({ length: 12 }, (_, index) => {
-        const start = shiftDate(currentWeek, (index - 11) * 7);
-        const end = shiftDate(start, 6);
-        const hoursInPeriod = entries
-          .filter((entry) => entry.date >= start && entry.date <= end)
-          .reduce((sum, entry) => sum + entry.hours, 0);
-        return { key: start, date: start, label: formatDate(start, { month: "short", day: "numeric" }), hours: hoursInPeriod };
-      });
-    }
-    if (chartPeriod === "month") {
-      const anchorMonth = `${chartAnchor.slice(0, 7)}-01`;
-      return Array.from({ length: 12 }, (_, index) => {
-        const start = shiftMonth(anchorMonth, index - 11);
-        const end = `${start.slice(0, 7)}-${String(monthLength(start)).padStart(2, "0")}`;
-        const hoursInPeriod = entries
-          .filter((entry) => entry.date >= start && entry.date <= end)
-          .reduce((sum, entry) => sum + entry.hours, 0);
-        return { key: start, date: start, label: formatDate(start, { month: "short" }), hours: hoursInPeriod };
-      });
-    }
-    const anchorYear = Number(chartAnchor.slice(0, 4));
-    return Array.from({ length: 5 }, (_, index) => {
-      const year = anchorYear - (4 - index);
-      const hoursInPeriod = entries
-        .filter((entry) => Number(entry.date.slice(0, 4)) === year)
-        .reduce((sum, entry) => sum + entry.hours, 0);
-      return { key: String(year), date: `${year}-01-01`, label: String(year), hours: hoursInPeriod };
-    });
-  })();
-  const chartMax = Math.max(...chartData.map((period) => period.hours), 1);
-  const chartNextDisabled =
-    chartPeriod === "day"
-      ? chartAnchor >= today
-      : chartPeriod === "week"
-        ? getWeekStart(chartAnchor) >= weekStart
-        : chartPeriod === "month"
-          ? chartAnchor.slice(0, 7) >= today.slice(0, 7)
-          : chartAnchor.slice(0, 4) >= today.slice(0, 4);
-  const chartHeading =
-    chartPeriod === "day"
-      ? `${formatDate(chartData[0].date, { month: "short", day: "numeric" })} – ${formatDate(chartAnchor, { month: "short", day: "numeric", year: "numeric" })}`
-      : chartPeriod === "week"
-        ? `12 weeks through ${formatDate(chartAnchor, { month: "short", day: "numeric", year: "numeric" })}`
-        : chartPeriod === "month"
-          ? `12 months through ${getMonthLabel(chartAnchor)}`
-          : `5 years through ${chartAnchor.slice(0, 4)}`;
-
-  function moveChartPeriod(direction) {
-    const amount = chartPeriod === "day" ? 14 : chartPeriod === "week" ? 12 : chartPeriod === "month" ? 12 : 5;
-    setChartAnchor((anchor) => {
-      const nextAnchor =
-        chartPeriod === "month"
-          ? shiftMonth(anchor, direction * amount)
-          : chartPeriod === "year"
-            ? localDateKey(new Date(Number(anchor.slice(0, 4)) + direction * amount, 0, 1))
-            : shiftDate(anchor, direction * amount * (chartPeriod === "week" ? 7 : 1));
-      return direction > 0 && nextAnchor > today ? today : nextAnchor;
-    });
-  }
-
-  function showCurrentRange(period) {
-    setChartPeriod(period);
-    setChartAnchor(today);
-  }
 
   function saveDailyGoal(event) {
     event.preventDefault();
@@ -1159,62 +1043,7 @@ function App() {
               </article>
             </div>
 
-            <div className="chart-card">
-              <div className="chart-heading">
-                <div><div className="section-kicker">YOUR CONSISTENCY</div><h2>{chartHeading}</h2></div>
-                <span className="chart-legend"><span /> Hours studied</span>
-              </div>
-              <div className="chart-controls">
-                <div className="chart-range-controls">
-                  <select
-                    className="chart-current-select"
-                    aria-label="Jump to current period"
-                    value={chartAnchor === today ? chartPeriod : ""}
-                    onChange={(event) => showCurrentRange(event.target.value)}
-                  >
-                    <option value="">Current</option>
-                    <option value="day">Today</option>
-                    <option value="week">This week</option>
-                    <option value="month">This month</option>
-                    <option value="year">This year</option>
-                  </select>
-                  <div className="chart-period-select" role="group" aria-label="Chart grouping">
-                    {[
-                      ["day", "Day"],
-                      ["week", "Week"],
-                      ["month", "Month"],
-                      ["year", "Year"],
-                    ].map(([value, label]) => (
-                      <button
-                        type="button"
-                        className={chartPeriod === value ? "selected" : ""}
-                        key={value}
-                        aria-pressed={chartPeriod === value}
-                        onClick={() => setChartPeriod(value)}
-                      >{label}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="chart-navigation">
-                  <button type="button" aria-label="Previous chart range" onClick={() => moveChartPeriod(-1)}><ChevronLeft size={17} /></button>
-                  <button type="button" aria-label="Next chart range" disabled={chartNextDisabled} onClick={() => moveChartPeriod(1)}><ChevronRight size={17} /></button>
-                </div>
-              </div>
-              <div className="chart-area" role="img" aria-label={`${{ day: "Daily", week: "Weekly", month: "Monthly", year: "Yearly" }[chartPeriod]} bar chart of French study hours`}>
-                <div className="chart-guides"><span>{formatHours(chartMax)}h</span><span>{formatHours(chartMax / 2)}h</span><span>0h</span></div>
-                <div className={`bar-chart chart-bars-${chartPeriod}`}>
-                  {chartData.map((period, index) => (
-                    <div className={`bar-column ${period.hours > 0 ? "has-hours" : ""} ${period.date === today ? "is-today" : ""}`} key={period.key} title={`${period.label}: ${formatHours(period.hours)} hours`}>
-                      <div className="bar-track"><div className="bar-fill" style={{ height: `${period.hours ? Math.max((period.hours / chartMax) * 100, 5) : 0}%` }} /></div>
-                      <span className="bar-label">{chartPeriod === "day" && index % 2 !== 0 && index !== chartData.length - 1 ? "" : period.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {chartData.every((period) => period.hours === 0) && (
-                <p className="chart-range-empty">No study hours logged in this range.</p>
-              )}
-            </div>
+            <StudyChart entries={entries} today={today} />
 
             <div className="insight-grid">
               <article className="insight-card">
